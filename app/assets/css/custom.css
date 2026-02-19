@@ -1,0 +1,80 @@
+.flatpickr-day.selected {
+  background: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+}
+
+.flatpickr-day.today {
+  border-color: var(--bs-primary) !important;
+}
+
+/* 1. Set the background to your theme's secondary color (#525252) */
+.ui-state-active,
+.ui-widget-content .ui-state-active {
+  background-color: #525252 !important;
+  /* Your --bs-secondary */
+  border: none !important;
+  margin: 0 !important;
+  border-radius: 0;
+  /* Keeps the highlight full-width */
+}
+
+/* 2. Change all text inside to white when hovered/active for contrast */
+.ui-state-active .product-result-item div,
+.ui-state-active .product-result-item span,
+.ui-state-active .product-result-item {
+  color: #ffffff !important;
+}
+
+/* 3. Optional: Make the SKU slightly lighter on hover so it still looks distinct */
+.ui-state-active div span {
+  opacity: 0.9;
+}
+
+/* Ensure the container matches your theme's input styling */
+.ui-autocomplete {
+  background: #ffffff !important;
+}
+
+.ui-menu-item div {
+  cursor: pointer;
+}
+
+/* overriding tab-pane behaviour */
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+  /* or flex, depending on your layout */
+}
+
+/* When the button inside .nav-item-secondary is active */
+.nav-item-secondary .nav-link.active {
+  background-color: var(--bs-secondary) !important;
+  border-color: var(--bs-secondary) !important;
+  color: #ffffff !important;
+}
+
+/* Optional: Ensure the hover state also uses the secondary color theme */
+.nav-item-secondary .nav-link:hover:not(.active) {
+  color: var(--bs-secondary);
+}
+
+
+/* Custom pagination theme */
+.page-item-secondary.active .page-link {
+  background-color: var(--bs-secondary) !important;
+  border-color: var(--bs-secondary) !important;
+  color: #fff !important;
+}
+
+/* Optional: Hover state for consistency */
+.page-item-secondary .page-link:hover {
+  color: var(--bs-secondary);
+}
+
+/* Ensure the link itself is styled correctly when not active */
+.page-item-secondary .page-link {
+  color: var(--bs-secondary);
+}
