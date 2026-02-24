@@ -58,13 +58,18 @@ if(!empty($_SESSION["login_company_id"])){
 // set up ANSWER
 $answer = array("success"=>0, "message"=>"");
 
-if(!isset($_POST['json']))
-{
-    $answer["message"] = "No data receive!";
+if (isset($_POST['json'])) {
+// Old Method: Data is wrapped in a JSON string
+$data = json_decode($_POST['json'], true);
+} else if (isset($_POST['otp'])) { 
+    // New Method: Data is sent directly (FormData)
+    // We check for 'otp' because every request should have one
+    $data = $_POST;
+} else {
+    // Truly no data received
+    $answer["message"] = "Request denied: No valid JSON payload or Form Data detected.";
     exit(json_encode($answer));
 }
-
-$data = json_decode($_POST['json'],true);
 
 // incase logging in
 if(!empty($_SESSION["login_company_id"])){

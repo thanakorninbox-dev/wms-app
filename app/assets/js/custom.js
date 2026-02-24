@@ -199,7 +199,20 @@ function ajax_request(options) {
     }
 
     options.data = { json: JSON.stringify(payloadJson) };
+
+    // IF formData exist, we pass as $_POST [not json]
+    if (options.formData instanceof FormData) {
+      // THE BYPASS: If formData exists, move all text data into it
+      Object.entries(payloadJson).forEach(([key, value]) => {
+        options.formData.append(key, value);
+      });
+      // Override options.data with the full FormData object
+      options.data = options.formData;
+    }
   }
+
+  // --- START MODIFIED $.AJAX BLOCK ---
+  let isSendingFiles = (options.data instanceof FormData);
 
   if (options.debugMode) {
     console.log("REQUEST DATA:", options.data);
@@ -219,7 +232,10 @@ function ajax_request(options) {
     type: options.type || "POST",
     url: options.url,
     data: options.data,
-    dataType: "json"
+    dataType: "json",
+    // These two settings are only triggered when sending files
+    processData: isSendingFiles ? false : true,
+    contentType: isSendingFiles ? false : "application/x-www-form-urlencoded; charset=UTF-8"
   })
   .then(function (res) {
 

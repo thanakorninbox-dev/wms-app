@@ -104,7 +104,7 @@
           <div class="card mb-5">
             <div class="card-body p-6">
               <h2 class="fs-4 mb-3">Contact Images</h2>
-              <div id="my-dropzone" class="dropzone border border-dashed rounded-3">
+              <div id="custom-dropzone" class="dropzone border border-dashed rounded-3">
                 <div class="fallback"><input type="file" name="file" id="file" /></div>
               </div>
 
@@ -151,13 +151,35 @@
   <?php require "../include_ending.php";?>
 
   <script>
+
+  let myDropzone;
+
+  $(document).ready(function() {
+      // Use the ID to initialize, ensuring NO conflict with theme classes
+      myDropzone = new Dropzone("#custom-dropzone", { 
+          url: "<?php echo $server_url?>contact/api/engine/manage_contact.php",
+          autoProcessQueue: false,
+          uploadMultiple: true,
+          paramName: "contact_files"
+      });
+  });
+  
   function manage_contact() {
+    let formData = new FormData();
+
+    let files = myDropzone.getQueuedFiles();
+
+    files.forEach(function(file) {
+        // Use 'contact_files[]' so PHP creates an array in $_FILES
+        formData.append('contact_files[]', file);
+    })
 
     return ajax_request({
       url: "<?php echo $server_url?>contact/api/engine/manage_contact.php",
       autoPrepare: true,
       checkRequired: 1,
       debugMode: 1,
+      formData: formData,
       action: 'manage',
       onSuccess: function(res) {
 
