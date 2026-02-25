@@ -32,41 +32,36 @@
               <h2 class="fs-4 mb-3">Contact Information</h2>
               <div class="row g-5">
                 <div class="col-lg-6">
-                  <label for="productName" class="form-label">Contact Name</label>
-                  <input type="text" name="" id="productName" class="form-control" placeholder="Name">
+                  <label for="contact_name" class="form-label">Contact Name</label>
+                  <input type="text" name="" id="contact_name" class="form-control" placeholder="Name" required>
 
                 </div>
                 <div class="col-lg-6">
-                  <label for="productName" class="form-label">Tax ID/Citizen ID</label>
-                  <input type="text" name="" id="productName" class="form-control" placeholder="xxxxxxxxxxxxx">
+                  <label for="tax_id" class="form-label">Tax ID/Citizen ID</label>
+                  <input type="text" name="" id="tax_id" class="form-control" placeholder="xxxxxxxxxxxxx" required>
 
                 </div>
                 <div class="col-lg-6">
-                  <label for="sku" class="form-label"> Organization</label>
-                  <input type="text" name="" id="sku" class="form-control" placeholder="company name">
+                  <label for="organization" class="form-label"> Organization</label>
+                  <input type="text" name="" id="organization" class="form-control" placeholder="company name" required>
 
                 </div>
                 <div class="col-lg-6">
-                  <label for="sku" class="form-label"> Branch</label>
-                  <input type="text" name="" id="sku" class="form-control" placeholder="00000">
+                  <label for="branch" class="form-label"> Branch</label>
+                  <input type="text" name="" id="branch" class="form-control" placeholder="00000">
 
                 </div>
                 <div class="col-lg-6">
-                  <label for="catogires" class="form-label"> Contact Type</label>
-                  <select name="" id="catogires" class="form-select">
-                    <option value="Leptop">Leptop</option>
-                    <option value="Desktop">Desktop</option>
-                    <option value="Accessories">Accessories</option>
-                    <option value="Phone">Phone</option>
-                  </select>
+                  <label for="contact_type" class="form-label"> Contact Type</label>
+                  <select name="" id="contact_type" class="form-select" required></select>
 
                 </div>
                 <div class="col-lg-6">
 
                 </div>
                 <div class="col-lg-12">
-                  <label for="address" class="form-label"> Billing Address</label>
-                  <textarea name="address" rows="3" id="address" class="form-control"
+                  <label for="billing_address" class="form-label"> Billing Address</label>
+                  <textarea name="billing_address" rows="3" id="billing_address" class="form-control"
                     placeholder="Customer Billing Address."></textarea>
 
                 </div>
@@ -155,15 +150,18 @@
   let myDropzone;
 
   $(document).ready(function() {
-      // Use the ID to initialize, ensuring NO conflict with theme classes
-      myDropzone = new Dropzone("#custom-dropzone", { 
-          url: "<?php echo $server_url?>contact/api/engine/manage_contact.php",
-          autoProcessQueue: false,
-          uploadMultiple: true,
-          paramName: "contact_files"
-      });
+    // Use the ID to initialize, ensuring NO conflict with theme classes
+    myDropzone = new Dropzone("#custom-dropzone", { 
+      url: "<?php echo $server_url?>contact/api/engine/manage_contact.php",
+      autoProcessQueue: false,    // Important: Wait for the button click
+      uploadMultiple: true,
+      parallelUploads: 10,
+      acceptedFiles: "image/*",
+      addRemoveLinks: true,
+      paramName: "contact_files"
+    });
   });
-  
+
   function manage_contact() {
     let formData = new FormData();
 
@@ -173,6 +171,15 @@
         // Use 'contact_files[]' so PHP creates an array in $_FILES
         formData.append('contact_files[]', file);
     })
+
+    let keepFiles = [];
+    myDropzone.files.forEach(function(file) {
+        // If the file doesn't have a status or is already 'success', it's an existing file
+        if (file.status === undefined || file.status === Dropzone.SUCCESS || file.status === Dropzone.ADDED) {
+            keepFiles.push(file.name);
+        }
+    });
+    formData.append('keep_files', keepFiles.join(','));
 
     return ajax_request({
       url: "<?php echo $server_url?>contact/api/engine/manage_contact.php",
@@ -191,14 +198,34 @@
   }
 
 
-  function retreive_for_edit() {
+   function retrieve_contact_type() {
+
+    return ajax_request({
+      url: "<?php echo $server_url?>contact/api/engine/contact_type.php",
+      autoPrepare: true,
+      checkRequired: 0,
+      action: 'read',
+      onSuccess: function(res) {
+
+        var option = ``;
+        $.each(res.output, function(key, item) {
+          option += `<option value='${item.id}'>${item.contact_type}</option>`;
+        })
+        $(`select#contact_type`).html(option);
+      }
+    });
+
+  }
+
+
+  function retrieve_for_edit() {
 
     <?php if(empty($_GET['id'])){ ?>
     return false;
     <?php } ?>
 
     return ajax_request({
-      url: "<?php echo $server_url?>contact/api/engine/retrieve_contact_type.php",
+      url: "<?php echo $server_url?>contact/api/engine/retrieve_contact.php",
       autoPrepare: true,
       checkRequired: 0,
       action: 'read',
@@ -207,6 +234,32 @@
         $.each(res.output, function(key, item) {
           $(`#${key}`).val(item);
         });
+
+        let item = res.output;
+        // 2. Handle files specifically (No loop needed for the row)
+        if (item.files) {
+          let fileArray = item.files.split(',');
+          
+          fileArray.forEach(function(fileName) {
+            if (fileName.trim() !== "") {
+              // Create a mock file for Dropzone
+              let mockFile = { 
+                name: fileName, 
+                size: 12345, 
+                accepted: true // Prevents Dropzone from rejecting it if it's already on server
+              };
+
+              // Display it in the UI
+              myDropzone.displayExistingFile(
+                mockFile, 
+                "<?php echo $server_url?>uploads/contact/" + fileName
+              );
+              
+              // Add to Dropzone's internal file array so it knows it exists
+              myDropzone.files.push(mockFile);
+            }
+          });
+        }
 
         $(`button[type=submit]`).text('Update');
 
@@ -221,7 +274,8 @@
 
   $(async function() {
     try {
-      await retreive_for_edit();
+      await retrieve_contact_type();
+      await retrieve_for_edit();
     } catch (e) {
       console.log(e);
     }

@@ -136,6 +136,7 @@ function log_out() {
     url: "<?php echo $server_url?>login/api/engine/back.php",
     autoPrepare: true,
     checkRequired: 0,
+    action: 'read',
     onSuccess: function(res) {
 
       window.location.href = "<?php echo $server_url?>index.php";

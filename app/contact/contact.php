@@ -89,7 +89,7 @@
                   <i class="ti ti-box-seam fs-4 "></i>
                 </div>
                 <div class="">
-                  <span>Total Products</span>
+                  <span>Total Contact</span>
                   <h2 class="fw-bold mb-0">356</h2>
                 </div>
 
@@ -135,7 +135,7 @@
 
               <div class="col-lg-12 mb-5">
                 <div class="position-relative">
-                  <input type="search" class="form-control ps-9" placeholder="Search by product name or SKU">
+                  <input type="search" class="form-control ps-9" placeholder="Search by contact name">
                   <span class="position-absolute top-25 ms-4">
                     <i class="ti ti-search text-muted"></i>
 
@@ -186,13 +186,15 @@
               </div>
 
               <div class="table-responsive">
-                <table class="table table-hover mb-0 table-centered" id="product">
+                <table class="table table-hover mb-0 table-centered" id="contact">
                   <thead class="table-secondary border-light">
                     <tr>
-                      <th>Product</th>
-                      <th>SKU</th>
-                      <th>Current Stock</th>
-                      <th>Min Stock</th>
+                      <th>Tax ID/Citizen ID</th>
+                      <th>Name</th>
+                      <th>Organization</th>
+                      <th>Branch</th>
+                      <th>Billing Address</th>
+                      <th>Shipping Address</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
@@ -277,21 +279,22 @@
 
 
   
-  function retrieve_product() {
+  function retrieve_contact() {
 
     return ajax_request({
-      url: "<?php echo $server_url?>inventory/api/engine/product.php",
+      url: "<?php echo $server_url?>contact/api/engine/contact.php",
       autoPrepare: true,
       checkRequired: 0,
+      action: 'read',
       onSuccess: function(res) {
 
         // Register the array as a table name
-        alasql('CREATE TABLE IF NOT EXISTS product');
-        alasql.tables.product.data = res.output || [];
+        alasql('CREATE TABLE IF NOT EXISTS contact');
+        alasql.tables.contact.data = res.output || [];
 
-        var total_records = alasql.tables.product.data.length;
+        var total_records = alasql.tables.contact.data.length;
 
-        var table_id = 'product';
+        var table_id = 'contact';
 
         var page = generate_pagination(table_id,total_records);
         $(`table#${table_id} tfoot`).html(page);
@@ -308,37 +311,39 @@
   }
 
 
-  function change_page_product(page_num) {
+  function change_page_contact(page_num) {
 
     var offset = (page_num - 1) * prop_limit;
 
-    var page_data = alasql(`SELECT * FROM product LIMIT ${prop_limit} OFFSET ${offset}`);
+    var page_data = alasql(`SELECT * FROM contact LIMIT ${prop_limit} OFFSET ${offset}`);
 
     var body = ``;
     $.each(page_data, function(key, item) {
       body += `<tr>
-            <td class="py-3">${item['product_name']}</td>
-            <td class="py-3">${item['sku']}</td>
-            <td class="py-3">${item['description']}</td>
-            <td class="py-3">${item['status']}</td>
+            <td class="py-3">${item['tax_id']}</td>
+            <td class="py-3">${item['contact_name']}</td>
+            <td class="py-3">${item['organization']}</td>
+            <td class="py-3">${item['branch']}</td>
+            <td class="py-3">${item['billing_address']}</td>
+            <td class="py-3">${item['shipping_address']}</td>
             <td class="py-3">
               ${(item['status'])?'<span class="badge bg-success">Active</span>':'<span class="badge bg-secondary">Inactive</span>'}
             </td>
             <td class="py-3">
-              <a href="<?php echo $server_url?>inventory/manage_product.php?id=${item['id']}" class=""><i class="ti ti-eye fs-5"></i></a>
+              <a href="<?php echo $server_url?>contact/manage_contact.php?id=${item['id']}" class=""><i class="ti ti-eye fs-5"></i></a>
               <a href="#" class="link-danger"><i class="ti ti-trash ms-2 fs-5"></i></a>
             </td>
           </tr>`;
     })
 
-    $("table#product > tbody").html(body);
+    $("table#contact > tbody").html(body);
 
   }
 
   $(async function() {
     try {
       await retrieve_contact_type();
-      // await retrieve_product();
+      await retrieve_contact();
     } catch (e) {
       console.log(e);
     }
